@@ -1,16 +1,69 @@
-# React + Vite
+# 📝 SyncNotes
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, feature-rich sticky notes application built with React and Tailwind CSS.  
+Designed for productivity, collaboration, and a smooth user experience.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Features
 
-## React Compiler
+### 🧠 Core Features
+- 📝 Create, edit, and delete notes
+- 📌 Pin important notes
+- ⭐ Mark notes as favorites
+- 📋 Clone notes instantly
+- 🧲 Drag & drop to reorder notes
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🔍 Organization & Search
+- 🔍 Search notes by title
+- 🏷️ Filter notes using tags
+- 🎨 Custom note colors
 
-## Expanding the ESLint configuration
+### 🎤 Smart Input
+- 🎤 Voice-to-text note creation
+- 🌐 Multi-language speech support
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 🌙 UI/UX Enhancements
+- 🌙 Dark / Light mode (auto + manual)
+- ✨ Smooth animations (Framer Motion)
+- 💡 Tooltips for better usability
+- 🔥 First-time onboarding experience
+- 🎯 Guided feature tour with spotlight highlight
+
+### 💾 Persistence
+- 💾 Local storage auto-save
+- 🔄 State persistence across sessions
+
+---
+
+## 🛠️ Tech Stack
+
+- ⚛️ React (with Hooks)
+- 🎨 Tailwind CSS
+- 🧲 @dnd-kit (drag & drop)
+- 🎞️ Framer Motion (animations)
+- 🎤 Web Speech API (voice input)
+
+---
+
+## 📸 Screenshots (Optional)
+_Add screenshots here_
+
+---
+
+## 🧩 Key Highlights
+
+- 🔥 Custom onboarding system with spotlight effect
+- 🎯 Interactive feature tour (like SaaS apps)
+- 🧠 Clean state management using hooks
+- ⚡ Highly responsive and smooth UI
+
+---
+
+## 📦 Installation
+
+```bash
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
+npm install
+npm run dev
