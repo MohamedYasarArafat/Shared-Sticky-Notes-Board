@@ -1,5 +1,12 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  closestCenter,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import {
   SortableContext,
   useSortable,
@@ -8,6 +15,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
+import EmptyState from "./emptyStateComponent";
 
 // ================= TYPES =================
 type Note = {
@@ -59,90 +67,95 @@ function SortableNote({
       ref={setNodeRef}
       style={style}
       layout
-      className={`relative rounded-2xl p-5 shadow group transition-all hover:shadow-lg ${
+      className={`relative rounded-2xl p-5 pr-14 shadow group transition-all hover:shadow-lg ${
         darkMode ? "bg-gray-800 text-white" : `${note.color} text-gray-900`
       }`}
     >
       {/* 🔥 Top-right actions */}
-      <div className="absolute top-3 right-3 flex gap-2">
-        {/* 📋 Clone */}
-        <Tooltip text="Clone Note">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClone(note);
-            }}
-            className="text-sm opacity-0 group-hover:opacity-100 transition hover:scale-110"
-          >
-            📋
-          </button>
-        </Tooltip>
+      <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+        <div className="flex gap-2 justify-end">
+          {/* 📌 Pin */}
+          {(note.pinned || true) && (
+            <div className="group">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPin(note.id);
+                }}
+                className={`text-sm transition ${
+                  note.pinned
+                    ? "opacity-100"
+                    : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                } hover:scale-110`}
+              >
+                {note.pinned ? "📌" : "📍"}
+              </button>
+            </div>
+          )}
 
-        {/* 📌 Pin */}
-        {(note.pinned || true) && (
-          <Tooltip text="Pin Note">
+          {/* ⭐ Favorite */}
+          {(note.favorite || true) && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onPin(note.id);
+                onToggleFav(note.id);
               }}
               className={`text-sm transition ${
-                note.pinned
-                  ? "opacity-100"
-                  : "opacity-0 group-hover:opacity-100"
+                note.favorite
+                  ? "text-yellow-600 opacity-100"
+                  : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
               } hover:scale-110`}
             >
-              {note.pinned ? "📌" : "📍"}
+              {note.favorite ? "⭐" : "☆"}
             </button>
-          </Tooltip>
-        )}
+          )}
 
-        {/* ⭐ Favorite */}
-        {(note.favorite || true) && (
+          {/* 🗑️ Delete */}
+          <div className="group">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(note.id);
+              }}
+              className="text-sm text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition hover:scale-110"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+        {/* Row 2 */}
+        <div className="flex gap-2 justify-end">
+          {/* 📋 Clone */}
+          <div className="group">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClone(note);
+              }}
+              className="text-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition hover:scale-110"
+            >
+              📋
+            </button>
+          </div>
+
+          {/* ✏️ Edit */}
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onToggleFav(note.id);
+              onEdit(note);
             }}
-            className={`text-sm transition ${
-              note.favorite
-                ? "text-yellow-600 opacity-100"
-                : "opacity-0 group-hover:opacity-100"
-            } hover:scale-110`}
+            className="bg-black text-white w-7 h-7 rounded-full text-xs opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition hover:scale-110"
           >
-            {note.favorite ? "⭐" : "☆"}
+            ✏️
           </button>
-        )}
-
-        {/* 🗑️ Delete */}
-        <Tooltip text="Delete Note">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(note.id);
-            }}
-            className="text-sm text-red-500 opacity-0 group-hover:opacity-100 transition hover:scale-110"
-          >
-            🗑️
-          </button>
-        </Tooltip>
-
-        {/* ✏️ Edit */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(note);
-          }}
-          className="bg-black text-white w-7 h-7 rounded-full text-xs opacity-0 group-hover:opacity-100 transition hover:scale-110"
-        >
-          ✏️
-        </button>
+        </div>
       </div>
+
       {/* 🧲 Drag */}
       <div
         {...attributes}
         {...listeners}
-        className="cursor-grab text-xs text-gray-600 mb-2"
+        className="cursor-grab text-xs text-gray-600 mb-2 touch-none"
       >
         ⠿ Drag
       </div>
@@ -191,8 +204,8 @@ function SortableNote({
         </div>
       </div>
       {/* 👤 Center Hover User Badge */}
-      <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-2">
-        <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-2 group-hover:translate-y-0">
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 pointer-events-none z-10">
+        <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
           <div className="bg-orange-500 text-white text-xs px-3 py-1 rounded-full shadow-md">
             {note.createdBy}
           </div>
@@ -222,6 +235,11 @@ export default function App() {
     const hour = new Date().getHours();
     return hour >= 18 || hour <= 6;
   });
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+  );
 
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = React.useRef<any>(null);
@@ -230,6 +248,18 @@ export default function App() {
   const [showTour, setShowTour] = useState(false);
 
   const [spotlight, setSpotlight] = useState<any>(null);
+
+  const [showRegister, setShowRegister] = useState(false);
+  const [showAccess, setShowAccess] = useState(false);
+
+  const [userForm, setUserForm] = useState({
+    name: "",
+    email: "",
+    team: "",
+    secret: "",
+  });
+
+  const [generatedLink, setGeneratedLink] = useState("");
 
   useEffect(() => {
     if (!showTour) return;
@@ -565,6 +595,15 @@ export default function App() {
           darkMode ? "bg-gray-800" : "bg-white"
         }`}
       >
+        {/* 👤 Register */}
+        <button
+          onClick={() => setShowRegister(true)}
+          className="mb-3 bg-blue-500 text-white w-10 h-10 rounded-full text-lg hover:scale-105 transition"
+        >
+          👤
+        </button>
+
+        {/* ➕ Add */}
         <button
           onClick={handleAdd}
           className="bg-black text-white w-10 h-10 rounded-full text-xl"
@@ -626,8 +665,14 @@ export default function App() {
             <button
               key={tag}
               onClick={() => setSelectedTag(tag)}
-              className={`px-3 py-1 rounded-full text-sm ${
-                selectedTag === tag ? "bg-black text-white" : "bg-gray-200"
+              className={`px-3 py-1 rounded-full text-sm transition ${
+                selectedTag === tag
+                  ? darkMode
+                    ? "bg-white text-black"
+                    : "bg-black text-white"
+                  : darkMode
+                    ? "bg-gray-700 text-white hover:bg-gray-600"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}
             >
               {tag}
@@ -637,6 +682,7 @@ export default function App() {
 
         {/* Grid + Drag */}
         <DndContext
+          sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
@@ -644,20 +690,28 @@ export default function App() {
             items={filteredNotes.map((n) => n.id)}
             strategy={rectSortingStrategy}
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filteredNotes.map((note) => (
-                <SortableNote
-                  key={note.id}
-                  note={note}
-                  onEdit={handleEdit}
-                  onToggleFav={toggleFavorite}
-                  onDelete={deleteNote}
-                  onPin={togglePin}
-                  onClone={cloneNote}
-                  darkMode={darkMode}
-                />
-              ))}
-            </div>
+            {filteredNotes.length === 0 ? (
+              // ✅ CENTERED EMPTY STATE
+              <div className="flex items-center justify-center h-[70vh] w-full">
+                <EmptyState onAdd={handleAdd} darkMode={darkMode} />
+              </div>
+            ) : (
+              // ✅ NORMAL GRID
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredNotes.map((note) => (
+                  <SortableNote
+                    key={note.id}
+                    note={note}
+                    onEdit={handleEdit}
+                    onToggleFav={toggleFavorite}
+                    onDelete={deleteNote}
+                    onPin={togglePin}
+                    onClone={cloneNote}
+                    darkMode={darkMode}
+                  />
+                ))}
+              </div>
+            )}
           </SortableContext>
         </DndContext>
       </div>
@@ -951,18 +1005,114 @@ export default function App() {
           </p>
         </div>
       )}
+      {showRegister && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div
+            className={`w-full max-w-md rounded-xl shadow-xl ${
+              darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
+            }`}
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center px-5 py-4 border-b">
+              <h2 className="text-lg font-semibold">Create Workspace</h2>
+              <button onClick={() => setShowRegister(false)}>✖</button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4">
+              <input
+                placeholder="Your Name"
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+                value={userForm.name}
+                onChange={(e) =>
+                  setUserForm({ ...userForm, name: e.target.value })
+                }
+              />
+
+              <input
+                placeholder="Email"
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+                value={userForm.email}
+                onChange={(e) =>
+                  setUserForm({ ...userForm, email: e.target.value })
+                }
+              />
+
+              <input
+                placeholder="Team / Workspace Name"
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+                value={userForm.team}
+                onChange={(e) =>
+                  setUserForm({ ...userForm, team: e.target.value })
+                }
+              />
+
+              <input
+                placeholder="Secret Code"
+                type="password"
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+                value={userForm.secret}
+                onChange={(e) =>
+                  setUserForm({ ...userForm, secret: e.target.value })
+                }
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t">
+              <button
+                onClick={() => {
+                  const link = `https://yoursite.com/board/${Date.now()}`;
+                  setGeneratedLink(link);
+                }}
+                className="w-full py-2 rounded-lg bg-blue-600 text-white"
+              >
+                Generate Link 🔗
+              </button>
+            </div>
+
+            {/* Link Preview */}
+            {generatedLink && (
+              <div className="p-4 border-t text-sm">
+                <p className="mb-2">Share this link:</p>
+                <div className="flex gap-2">
+                  <input
+                    value={generatedLink}
+                    readOnly
+                    className="flex-1 border px-2 py-1 rounded"
+                  />
+                  <button
+                    onClick={() => navigator.clipboard.writeText(generatedLink)}
+                    className="px-2 bg-black text-white rounded"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {showAccess && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm">
+            <h2 className="text-lg font-semibold mb-3">Enter Secret Code 🔐</h2>
+
+            <input
+              type="password"
+              placeholder="Enter code..."
+              className="w-full border rounded-lg px-3 py-2 text-sm mb-4"
+            />
+
+            <button className="w-full bg-black text-white py-2 rounded-lg">
+              Access Board
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-const Tooltip = ({ text, children }: any) => (
-  <div className="relative group inline-block">
-    {children}
-    <div className="absolute bottom-full mb-2 hidden group-hover:block text-xs bg-black text-white px-2 py-1 rounded whitespace-nowrap">
-      {text}
-    </div>
-  </div>
-);
 
 const COLORS = [
   "bg-yellow-200",

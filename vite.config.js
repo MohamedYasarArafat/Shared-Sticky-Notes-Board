@@ -14,4 +14,5 @@ export default defineConfig({
       failOnError: true,
     }),
   ],
+  base: "/Shared-Sticky-Notes-Board/", // 👈 THIS IS THE FIX
 });
