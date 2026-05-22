@@ -598,7 +598,7 @@ export default function App() {
         {/* 👤 Register */}
         <button
           onClick={() => setShowRegister(true)}
-          className="mb-3 bg-blue-500 text-white w-10 h-10 rounded-full text-lg hover:scale-105 transition"
+          className="mb-3 bg-black text-white w-10 h-10 rounded-full text-lg hover:scale-105 transition"
         >
           👤
         </button>
