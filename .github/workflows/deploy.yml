@@ -1,0 +1,25 @@
+name: Deploy Vite App
+
+on:
+  push:
+    branches:
+      - main   # or master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy
+        run: |
+          npm install -g gh-pages
+          gh-pages -d dist
